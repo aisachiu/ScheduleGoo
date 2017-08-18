@@ -1,0 +1,144 @@
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+  
+<script>
+//Angular
+var app = angular.module('myApp', []);
+app.controller('myCtrl', function($scope, $interval, filterFilter){
+    
+    $scope.data = {};
+    $scope.isLoaded = false;
+    
+    function loadData() {
+      $scope.dataFetching = true;
+      google.script.run.withSuccessHandler(showData).loadGInfo();
+      $scope.saveBtnDisabled = true;
+    }
+    
+    loadData();
+    
+    function showData(data){
+      $scope.data = data;
+      $scope.data.dates = {toDate: new Date(data.toDate), fromDate: new Date(data.fromDate)}; 
+      var now = new Date();
+      for(var x=0; x < $scope.data.templates.length; x++){ //create date time for the times.
+        for (var y=0; y < $scope.data.templates[x].days.length; y++){
+          for (var z=0; z < $scope.data.templates[x].days[y].rows.length; z++){
+            $scope.data.templates[x].days[y].rows[z].startDFormat = timeToDate($scope.data.templates[x].days[y].rows[z].startTime,now);
+            $scope.data.templates[x].days[y].rows[z].endDFormat = timeToDate($scope.data.templates[x].days[y].rows[z].endTime,now);  
+            
+         }
+        }
+      }
+      $scope.saveStatus = "";
+      $scope.saveBtnDisabled = false;
+      $scope.isLoaded = true;
+      console.log($scope);
+              $scope.$digest();
+      
+    }
+    
+    $scope.save = function(){
+      var data = $scope.data;
+      console.log(data);
+      
+      //prepare data
+      var eventsToAdd = [];
+      var totalCount =0;
+      for (var t=0; t< data.templates.length; t++){  //cycle through templates
+        if (data.templates[t].templateActive) { //if template is active (chosen)
+          for (var d=0; d < data.templates[t].days.length; d++){ //cycle through days
+            if(data.templates[t].days[d].active){ //if day is active (chosen)
+              var events = [];
+              var eventCount = 0;
+              for (var r=0; r < data.templates[t].days[d].rows.length; r++){ //cycle through rows
+                if (data.templates[t].days[d].rows[r].active) { //save active rows
+                  events.push(
+                    {title: data.templates[t].days[d].rows[r].subject,
+                      startTimeHours: data.templates[t].days[d].rows[r].startDFormat.getHours(), 
+                      startTimeMins: data.templates[t].days[d].rows[r].startDFormat.getMinutes(),
+                      endTimeHours: data.templates[t].days[d].rows[r].endDFormat.getHours(),
+                      endTimeMins: data.templates[t].days[d].rows[r].endDFormat.getMinutes(),
+                      options: { location: data.templates[t].days[d].rows[r].location,
+                                guests: data.templates[t].days[d].rows[r].shareWith}
+                    });
+                     
+                  eventCount++;
+                }
+              }
+              if (eventCount > 0) {
+                eventsToAdd.push({refCal: data.templates[t].refCalId, search: data.templates[t].days[d].dayName, events: events});
+                totalCount += eventCount;
+              }
+            }
+          }
+        }
+      }
+      
+      var output = {targetCal: data.myDefCal, startDate: data.dates.fromDate.toISOString(), endDate: data.dates.toDate.toISOString(), days: eventsToAdd};
+      var r = confirm("Do you want to save these "+totalCount+" events?");
+      if (r == true) {
+          console.log(output);
+          $scope.saveStatus = "Starting save... This can take a while, but you can check your Google Calendar as events are being created! Hang tight!"
+          google.script.run.withSuccessHandler(saveSuccess).saveToCal(output);
+          $scope.saveBtnDisabled = true;
+          $timeout(function () { $scope.saveBtnDisabled = false; }, 3000, false);
+      } else {
+          x = "You pressed Cancel!";
+          $scope.saveStatus = "You pressed Cancel!"
+      } 
+    };
+    
+    function saveSuccess(sid){
+      $scope.saveStatus = 'Saving Complete. Check your Google Calendar, and the <a href="https://docs.google.com/spreadsheets/d/'+sid+'/view">record log</a>';
+      console.log("Saved!");
+    };
+})
+
+.directive('multipleEmails', function () {
+  return {
+    require: 'ngModel',
+    link: function(scope, element, attrs, ctrl) {
+      ctrl.$parsers.unshift(function(viewValue) {
+
+        var emails = viewValue.split(',');
+        // loop that checks every email, returns undefined if one of them fails.
+        var re = /\S+@\S+\.\S+/;
+
+        // angular.foreach(emails, function() {
+          var validityArr = emails.map(function(str){
+              return re.test(str.trim());
+          }); // sample return is [true, true, true, false, false, false]
+          console.log(emails, validityArr); 
+          var atLeastOneInvalid = false;
+          angular.forEach(validityArr, function(value) {
+            if(value === false)
+              atLeastOneInvalid = true; 
+          }); 
+          if(!atLeastOneInvalid) { 
+            // ^ all I need is to call the angular email checker here, I think.
+            ctrl.$setValidity('multipleEmails', true);
+            return viewValue;
+          } else {
+            ctrl.$setValidity('multipleEmails', false);
+            return undefined;
+          }
+        // })
+      });
+    }
+  };
+});;
+
+// timeToDate
+function timeToDate(tStr,ddate) {
+	var now = new Date();
+  now.setHours(tStr.substr(0,tStr.indexOf(":")));
+  now.setMinutes(tStr.substr(tStr.indexOf(":")+1));
+  now.setSeconds(0);
+  now.setMilliseconds(0);
+  return now;
+
+}
+</script>
+
+

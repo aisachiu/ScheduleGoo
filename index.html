@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <title>Create Schedule on Google Calendar</title>
+    <!-- BOOTSTRAP: Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+    <?!= include("css"); ?>
+  </head>
+  <body>
+  
+    <div class="container" ng-app="myApp" ng-controller="myCtrl">  
+    
+    <div ng-hide="isLoaded"><h3>Loading...</h3></div>
+    
+    <div class="col-md-12">
+        <h1>AIS Google Timetable Creator</h1>
+        <p>Use this app to create your timetable to your google calendar.</p>
+        <p>Set the range of dates you wish to create events from / to using Start Date and End Date</p>
+        
+        <h2>Step 1: Set Date Range</h2>
+        <div>From date:<input type="date" name="fromDate" ng-model="data.dates.fromDate" /></div>
+        <div>To date:<input type="date" name="fromDate" ng-model="data.dates.toDate" /><p class="bg-warning">Due to limits on Google Calendar through Scripting, please limit the date range to 3-4 months max at a time.</p></div>        
+        <h2>Step 2: Choose a Google Calendar</h2>
+        <p>Next choose which calendar you wish to add your events to: {{data.myDefCal}}</p>
+        <select ng-options="cal.id as cal.name for cal in data.myCalendars" ng-model="data.myDefCal"></select>
+        <h2>Step 3: Enter event details</h2>
+        <p>Choose and select the relevant timetable, and enter the details for all the events you want to add to your calendar</p> </div>
+       <ul class="nav nav-tabs">
+        <li ng-repeat="template in data.templates"><a data-toggle="tab" href="#T{{$index}}"><input type="checkbox" ng-model="template.templateActive" />{{template.name}}</a></li>
+       </ul>
+        <div class="tab-content">
+          <div ng-repeat="template in data.templates" id="T{{$index}}" class="tab-pane fade in" ng-class="{active: ($index == 0)}">
+            <h1><input type="checkbox" ng-model="template.templateActive" />{{template.name}}</h1>
+            <div ng-repeat="day in template.days" class="schedule-day col-lg-6 col-md-12 col-xs-12" name="day.dayName" ng-class="{active: (day.active && template.templateActive), inactive: !(day.active && template.templateActive)}">
+              <p><input type="checkbox" ng-model="day.active" />{{day.dayName}}</p>
+              <table ng-show="day.active" class="table">
+              <thead>
+                <tr>
+                <th>Period</th>
+                <th>Add</th>
+                <th>Start - End times</th>
+                <th>Subject<br/>Location</th>
+                <th>Share with</th>
+              </thead>
+              <tbody>
+              <tr ng-repeat="row in day.rows">
+                <td>{{row.title}}</td>
+                <td><input type="checkbox" ng-model="row.active" ng-disabled="!day.active" class="checkboxinput"/></td>
+                <td><input type="time" ng-model="row.startDFormat" class="mytime" ng-disabled="!row.active"/> - <input type="time" ng-model="row.endDFormat" class="mytime" ng-disabled="!row.active"/></td>
+                <td><input type="text" ng-model="row.subject" ng-show="row.active"/> <br />
+                <input type="text" ng-model="row.location" ng-show="row.active"/> </td>
+                <td><input ng-class="{'has-error': thisangular.element[0].$invalid}"  name="shareWithInput" type="text" ng-model="row.shareWith" multiple-emails ng-show="row.active"/></td>
+              </tr>
+              </tbody>
+              </table>
+            </div>
+        </div>
+       </div>
+
+        <button id="savebtn" ng-click="save()">Save to Calendar</button>{{saveStatus}}
+  </div>
+
+<?!= include("script"); ?>
+
+  </body>
+</html>
+
+
