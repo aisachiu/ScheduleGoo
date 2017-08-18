@@ -10,16 +10,12 @@
 
 // -- GLOBALS --
 // Spreadsheet details - for settings and DB details stored in a spreadsheet
-var mySheetID = "1X4TIWl6MxgoptgX-7FuANYjxzydokSmab3OZbY8rz6E"; // Calendar Settings Spreadsheet 2014
+var mySheetID = SpreadsheetApp.getActiveSpreadsheet().getId(); // This Spreadsheet
 var sheetTeacherCourses = "TeacherCourses" //Name of sheet with details of the courses each teacher teaches
 
 
 //Get User
 var thisUser = Session.getActiveUser().getEmail();
-//var thisUser = 'jwade@ais.edu.hk';
-
-//High School Calendar
-//var referenceCalendar = 'ais.edu.hk_l4fben0lb5jblvd8q6b0501ijc@group.calendar.google.com';
 
 
 // -- FUNCTIONS --
@@ -637,6 +633,10 @@ function include(filename) {
 }
 
 
+function testGetResourceCal(){
+  var myTest = CalendarApp.getCalendarById("ais.edu.hk_2d31383636393138322d363133@resource.calendar.google.com").getName();
+  Logger.log(myTest);
+}
 
 function testTTD(){
   var now = new Date();
