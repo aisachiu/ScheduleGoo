@@ -12,7 +12,7 @@
 // Spreadsheet details - for settings and DB details stored in a spreadsheet
 var mySheetID = SpreadsheetApp.getActiveSpreadsheet().getId(); // This Spreadsheet
 var sheetTeacherCourses = "TeacherCourses" //Name of sheet with details of the courses each teacher teaches
-
+var settingsSheet = "Settings";
 
 //Get User
 var thisUser = Session.getActiveUser().getEmail();
@@ -42,8 +42,8 @@ function loadGInfo(){
   
   var myCourses = {};
   for( var course = 0; course < myCoursesDb.length; course++){
-    var myPeriodCode = myCoursesDb[course][4];
-    if (myPeriodCode != ""){ myCourses[myPeriodCode] = {subject: myCoursesDb[course][1], location:myCoursesDb[course][5]};}
+    var myPeriodCode = myCoursesDb[course][3];
+    if (myPeriodCode != ""){ myCourses[myPeriodCode] = {subject: myCoursesDb[course][1], location:myCoursesDb[course][2]};}
   }
   
   //Get available timetable templates
@@ -101,9 +101,10 @@ function loadGInfo(){
   }
 
   //Get Script Properties for Start and End Dates
-  var sP = PropertiesService.getScriptProperties();
-  var thisStartDate = sP.getProperty('yrStartDate');
-  var thisEndDate = sP.getProperty('yrEndDate');
+  //var sP = PropertiesService.getScriptProperties();
+  var sP = mySheet.getSheetByName(settingsSheet).getDataRange().getValues();
+  var thisStartDate = sP[1][1];
+  var thisEndDate = sP[2][1];
   
   //Get user's calendars
   var myCalendars = [];
