@@ -637,10 +637,6 @@ function include(filename) {
 }
 
 
-function testGetResourceCal(){
-  var myTest = CalendarApp.getCalendarById("ais.edu.hk_2d31383636393138322d363133@resource.calendar.google.com").getName();
-  Logger.log(myTest);
-}
 
 function testTTD(){
   var now = new Date();
